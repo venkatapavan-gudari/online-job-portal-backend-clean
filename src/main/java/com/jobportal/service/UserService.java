@@ -79,8 +79,10 @@ public class UserService {
         }
         if (updates.containsKey("password")) {
             String newPassword = updates.get("password");
-            if (newPassword == null || newPassword.length() < 6) {
-                throw new BadRequestException("Password must be at least 6 characters");
+            if (newPassword == null || newPassword.length() < 8 || 
+                !newPassword.matches(".*[A-Z].*") || 
+                !newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+                throw new BadRequestException("Password must be at least 8 characters and contain at least one uppercase letter and one special character");
             }
             user.setPassword(passwordEncoder.encode(newPassword));
         }
