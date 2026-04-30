@@ -29,6 +29,8 @@ public class UserService {
             throw new BadRequestException("Email already registered: " + request.getEmail());
         }
 
+        validatePassword(request.getPassword());
+
         Role role;
         try {
             role = Role.valueOf(request.getRole().toUpperCase());
@@ -79,14 +81,28 @@ public class UserService {
         }
         if (updates.containsKey("password")) {
             String newPassword = updates.get("password");
-            if (newPassword == null || newPassword.length() < 8 || 
-                !newPassword.matches(".*[A-Z].*") || 
-                !newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
-                throw new BadRequestException("Password must be at least 8 characters and contain at least one uppercase letter and one special character");
-            }
+            validatePassword(newPassword);
             user.setPassword(passwordEncoder.encode(newPassword));
         }
         return userRepository.save(user);
+    }
+
+    private void validatePassword(String password) {
+        if (password == null || password.length() < 8) {
+            throw new BadRequestException("Password must be at least 8 characters long");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new BadRequestException("Password must contain at least one uppercase letter");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new BadRequestException("Password must contain at least one lowercase letter");
+        }
+        if (!password.matches(".*[0-9].*")) {
+            throw new BadRequestException("Password must contain at least one number");
+        }
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            throw new BadRequestException("Password must contain at least one special character");
+        }
     }
 
     public boolean checkPassword(String rawPassword, String encodedPassword) {
